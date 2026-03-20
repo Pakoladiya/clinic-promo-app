@@ -56,8 +56,8 @@ export default function CanvasEditorPage() {
   /* ── Load profile ─────────────────────────────────── */
   useEffect(() => {
     if (!user) return;
-    getProfile(user.id).then(p => {
-      if (p) { setLogoUrl(p.logo_url); setClinicName(p.clinic_name || ''); }
+    getProfile(user.uid).then(p => {
+      if (p) { setLogoUrl(p.logoUrl); setClinicName(p.clinicName || ''); }
       setLoading(false);
     });
   }, [user]);

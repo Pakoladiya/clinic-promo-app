@@ -1,7 +1,8 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import supabase from './services/supabaseClient';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './services/firebase';
 
 // Pages (built one by one)
 import LoginPage          from './pages/LoginPage';
@@ -19,13 +20,14 @@ function AuthProvider({ children }) {
   const [session, setSession] = useState(undefined); // undefined = loading
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => setSession(s));
-    return () => subscription.unsubscribe();
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      setSession(firebaseUser ?? null);
+    });
+    return unsub;
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null }}>
+    <AuthContext.Provider value={{ session, user: session ?? null }}>
       {children}
     </AuthContext.Provider>
   );

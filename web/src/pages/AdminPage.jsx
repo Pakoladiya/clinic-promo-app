@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import supabase from '../services/supabaseClient';
+import { fetchAll, addContent, updateContent, deleteContent } from '../services/contentService';
 import { useAdmin } from '../hooks/useAdmin';
 
 const DISCIPLINES = ['Physio', 'Ophthalmology', 'Cardiology', 'Dermatology', 'Dentistry', 'Nutrition'];
@@ -22,11 +22,7 @@ export default function AdminPage() {
   /* ── Load all content ─────────────────────────────── */
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('content')
-      .select('*')
-      .order('discipline')
-      .order('created_at', { ascending: false });
+    const { data } = await fetchAll();
     setItems(data ?? []);
     setLoading(false);
   };
@@ -59,15 +55,18 @@ export default function AdminPage() {
     if (!form.title.trim() || !form.body.trim()) return;
     setSaving(true);
 
-    let error;
-    if (modal === 'add') {
-      ({ error } = await supabase.from('content').insert([form]));
-    } else {
-      ({ error } = await supabase.from('content').update(form).eq('id', modal.id));
+    try {
+      if (modal === 'add') {
+        await addContent(form);
+      } else {
+        await updateContent(modal.id, form);
+      }
+    } catch (err) {
+      setSaving(false);
+      showToast('Error: ' + err.message);
+      return;
     }
-
     setSaving(false);
-    if (error) { showToast('Error: ' + error.message); return; }
 
     setModal(null);
     showToast(modal === 'add' ? 'Post added!' : 'Post updated!');
@@ -77,11 +76,14 @@ export default function AdminPage() {
   /* ── Delete ───────────────────────────────────────── */
   const handleDelete = async (id) => {
     setDeleting(id);
-    const { error } = await supabase.from('content').delete().eq('id', id);
+    try {
+      await deleteContent(id);
+      showToast('Deleted.');
+      setItems(prev => prev.filter(i => i.id !== id));
+    } catch (err) {
+      showToast('Error: ' + err.message);
+    }
     setDeleting(null);
-    if (error) { showToast('Error: ' + error.message); return; }
-    showToast('Deleted.');
-    setItems(prev => prev.filter(i => i.id !== id));
   };
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };

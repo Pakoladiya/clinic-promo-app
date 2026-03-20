@@ -20,11 +20,11 @@ export default function ProfilePage() {
   /* ── Load existing profile ──────────────────────── */
   useEffect(() => {
     if (!user) return;
-    getProfile(user.id).then(p => {
+    getProfile(user.uid).then(p => {
       if (p) {
-        setClinicName(p.clinic_name || '');
-        setClinicInfo(p.clinic_info || '');
-        setLogoUrl(p.logo_url || null);
+        setClinicName(p.clinicName || '');
+        setClinicInfo(p.clinicInfo || '');
+        setLogoUrl(p.logoUrl || null);
       }
       setLoading(false);
     });
@@ -45,16 +45,15 @@ export default function ProfilePage() {
       let finalLogoUrl = logoUrl;
 
       if (logoFile) {
-        finalLogoUrl = await uploadLogo(user.id, logoFile);
+        finalLogoUrl = await uploadLogo(user.uid, logoFile);
         setLogoFile(null);
       }
 
-      const { error } = await upsertProfile(user.id, {
-        clinic_name: clinicName,
-        clinic_info: clinicInfo,
-        logo_url:    finalLogoUrl,
+      await upsertProfile(user.uid, {
+        clinicName,
+        clinicInfo,
+        logoUrl: finalLogoUrl,
       });
-      if (error) throw error;
 
       setToast('Profile saved!');
       setTimeout(() => setToast(''), 2500);

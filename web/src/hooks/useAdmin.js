@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import supabase from '../services/supabaseClient';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
 import { useAuth } from '../App';
 
 export function useAdmin() {
@@ -8,12 +9,8 @@ export function useAdmin() {
 
   useEffect(() => {
     if (!user) { setIsAdmin(false); return; }
-    supabase
-      .from('admin')
-      .select('id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data }) => setIsAdmin(!!data));
+    getDoc(doc(db, 'admin', user.uid))
+      .then(snap => setIsAdmin(snap.exists()));
   }, [user]);
 
   return isAdmin;

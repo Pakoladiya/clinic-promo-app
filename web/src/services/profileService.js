@@ -1,30 +1,18 @@
-import supabase from './supabaseClient';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from './firebase';
 
-export const getProfile = async (userId) => {
-  const { data } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-  return data;
+export const getProfile = async (uid) => {
+  const snap = await getDoc(doc(db, 'profiles', uid));
+  return snap.exists() ? snap.data() : null;
 };
 
-export const upsertProfile = (userId, fields) =>
-  supabase.from('profiles').upsert({ id: userId, ...fields, updated_at: new Date().toISOString() });
+export const upsertProfile = (uid, fields) =>
+  setDoc(doc(db, 'profiles', uid), { ...fields, updatedAt: new Date().toISOString() }, { merge: true });
 
-export const uploadLogo = async (userId, file) => {
-  const ext  = file.name.split('.').pop();
-  const path = `logos/${userId}.${ext}`;
-
-  const { error } = await supabase.storage
-    .from('clinic-assets')
-    .upload(path, file, { upsert: true });
-
-  if (error) throw error;
-
-  const { data: { publicUrl } } = supabase.storage
-    .from('clinic-assets')
-    .getPublicUrl(path);
-
-  return publicUrl;
+export const uploadLogo = async (uid, file) => {
+  const ext     = file.name.split('.').pop();
+  const logoRef = ref(storage, `logos/${uid}.${ext}`);
+  await uploadBytes(logoRef, file);
+  return getDownloadURL(logoRef);
 };

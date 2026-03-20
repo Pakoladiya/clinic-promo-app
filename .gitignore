@@ -1,16 +1,24 @@
-# Node.js
+# Dependencies
 node_modules/
-.env
+**/node_modules/
 
-# React Native
-*.js
-*.json
+# Environment variables (never commit)
+.env
+.env.local
+.env.*.local
+
+# React Native / Expo
 *.lock
 ios/*.xcodeproj
 ios/Pods/
 ios/build/
 android/.gradle/
 android/app/build/
+.expo/
+
+# Web build output
+web/dist/
+web/.vite/
 
 # Misc
 .DS_Store

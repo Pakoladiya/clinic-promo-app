@@ -9,6 +9,7 @@ import DashboardPage      from './pages/DashboardPage';
 import DetailsPage        from './pages/DetailsPage';
 import CanvasEditorPage   from './pages/CanvasEditorPage';
 import ProfilePage        from './pages/ProfilePage';
+import AdminPage          from './pages/AdminPage';
 
 /* ── Auth Context ─────────────────────────────────────── */
 export const AuthContext = createContext(null);
@@ -65,6 +66,9 @@ export default function App() {
             } />
             <Route path="/profile" element={
               <Protected><ProfilePage /></Protected>
+            } />
+            <Route path="/admin" element={
+              <Protected><AdminPage /></Protected>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

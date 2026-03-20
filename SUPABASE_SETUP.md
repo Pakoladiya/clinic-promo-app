@@ -1,44 +1,85 @@
-# Supabase Setup Instructions for Clinic Promo App
+# Supabase Setup Guide
 
-## Step 1: Create a Supabase Account
-1. Go to [Supabase](https://supabase.com/).
-2. Click on "Start your project" and create an account.
+## 1. Create a Supabase Project
 
-## Step 2: Create a New Project
-1. Once logged in, click on "New Project."
-2. Fill in the required details such as the project name, password, and database region.
-3. Click on "Create new project."
+1. Go to [supabase.com](https://supabase.com) → **New Project**
+2. Note your **Project URL** and **anon public key** (Settings → API)
 
-## Step 3: Set Up Database Schema
-Here is the recommended database schema for the Clinic Promo App:
+---
 
-### 1. Users Table
-- **id**: UUID (Primary Key)
-- **name**: VARCHAR
-- **email**: VARCHAR (Unique)
-- **password**: VARCHAR
+## 2. Run Migrations (in order)
 
-### 2. Clinics Table
-- **id**: UUID (Primary Key)
-- **name**: VARCHAR
-- **location**: VARCHAR
-- **contact_info**: JSON
+Open **SQL Editor** in your Supabase dashboard and run each file in order:
 
-### 3. Promotions Table
-- **id**: UUID (Primary Key)
-- **clinic_id**: UUID (Foreign Key)
-- **description**: TEXT
-- **start_date**: TIMESTAMP
-- **end_date**: TIMESTAMP
+```
+backend/supabase/migrations/001_initial_schema.sql
+backend/supabase/migrations/002_storage_and_policies.sql
+```
 
-## Step 4: API Keys
-1. Navigate to the settings of your project.
-2. Find your API keys under the "API" section.
-3. Save the keys securely as they'll be needed to connect your app to Supabase.
+---
 
-## Step 5: Client Library Integration
-- Use the Supabase client library in your application to connect with your Supabase backend. Follow the documentation on Supabase's website for integration instructions.
+## 3. Create Storage Bucket
 
+If migration 002 fails on the bucket insert (some plans restrict it via SQL):
 
-## Conclusion
-Once you have completed these steps, your Supabase setup for the Clinic Promo App should be ready for use!
+1. Go to **Storage** → **New Bucket**
+2. Name: `clinic-assets`
+3. Toggle **Public bucket**: ON
+4. Click Create
+
+Then re-run only the **policy** sections of `002_storage_and_policies.sql`.
+
+---
+
+## 4. Create Your First Admin User
+
+1. Go to **Authentication** → **Users** → **Add User**
+2. Enter email + password
+3. Copy the user's **UUID**
+4. Run in SQL Editor:
+
+```sql
+INSERT INTO admin (user_id, role) VALUES ('<paste-uuid-here>', 'admin');
+```
+
+---
+
+## 5. Set Environment Variables
+
+### Web (PWA)
+
+Create `web/.env` (copy from `web/.env.example`):
+
+```
+VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+```
+
+### React Native (mobile)
+
+Create `frontend/.env`:
+
+```
+EXPO_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
+
+---
+
+## 6. Verify Setup
+
+Run the web app:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Sign in → you should land on the Dashboard. Content Library will be empty until you seed data — see Step 7.
+
+---
+
+## 7. Seed Sample Content
+
+Run `backend/supabase/migrations/003_seed_content.sql` in the SQL Editor to populate the content library with sample posts.
